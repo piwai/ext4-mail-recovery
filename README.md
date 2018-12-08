@@ -1,8 +1,11 @@
 Mail recovery Tutorial
 ======================
 
-This repository describes my (desperate) attempt to try to recover deleted emails on my personnal server.
-The emails were text files in an IMAP folder.
+This repository describes my (desperate) attempt to try to recover deleted emails, in the hope that it can help somebody else.
+
+Note: Don't use this if you're using Microsoft Outlook or another mail agent which uses a global binary file per folder (.pst for Outlook). There are dedicated tools for that.
+
+Here we will try to recover text files on a linux server with an ext4 partition. The files were emails stored in an IMAP folder, and have been deleted by mistake.
 Details are here: https://serverfault.com/questions/942480/recovering-deleted-plain-text-emails-files-from-raw-disk-image
 
 I will assume that you've already did what I did first:
@@ -33,7 +36,7 @@ So we will use foremost only to locate where the emails are on the partition, an
 
 To do this, you will need to define a specific signature with a SMTP header encoded in hex, so that foremost can look for this in the partition and tell you at which offset it saw the signature. The header is "Received:", which is a fairly common header that each MTA adds to the email when routing it.
 
-To encode it, use the code below:
+To encode the header in Hex format used by foremost, use the code below:
 
 ```
 $ python3 -q
@@ -42,7 +45,37 @@ $ python3 -q
 \x52\x65\x63\x65\x69\x76\x65\x64\x3a
 ```
 
-Then put this result into foremost.conf file, like this:
+Then put this result into a foremost.conf file, like this:
 ```
-txt n 1000 \x52\x65\x63\x65\x69\x76\x65\x64\x3a
+$ echo "txt n 1000 \x52\x65\x63\x65\x69\x76\x65\x64\x3a" > foremost.conf
 ```
+You may also use the foremost.conf from this repository.
+
+Step 2: Run foremost to get the potential location of files
+===========================================================
+
+Now that we have set our custom config to locate emails, we can run foremost to tell us at which offset it saw the signature.
+On Debian-based systems, foremost can be installed with:
+
+```
+$ sudo apt-get install foremost
+```
+If it's not available for your distribution, you may need to compile it from source.
+
+Once installed, use the following command to run it:
+
+```
+$ foremost -w -c ./foremost.conf -i disk.img
+```
+ * -w is "dry-run" mode, it means don't try to extact the data, just locate the header.
+ * -c tells to use the config in the current folder
+ * -i means use "disk.img" as the raw image extracted by "dd" to look for deleted mails.
+
+Depending on the image size, this might take several hours to complete.
+When it's done, you should get a file named "audit.txt" in a "output" folder.
+There is a "audit.txt.sample" in the repo so you can see what it looks like. It's a sample,
+in my case the full file was nearly 45MB with almost 900k matches.
+
+Step 3: Extract file chunks based on audit.txt file
+===================================================
+
