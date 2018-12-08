@@ -73,9 +73,23 @@ $ foremost -w -c ./foremost.conf -i disk.img
 
 Depending on the image size, this might take several hours to complete.
 When it's done, you should get a file named "audit.txt" in a "output" folder.
-There is a "audit.txt.sample" in the repo so you can see what it looks like. It's a sample,
-in my case the full file was nearly 45MB with almost 900k matches.
+There is a "audit.txt.sample" in the repo so you can see what it looks like.
+In my case file was nearly 45MB with more than 800k matches.
 
 Step 3: Extract file chunks based on audit.txt file
 ===================================================
 
+Now starts the tricky part. Like we've seen, foremost doesn't know how much data it should extract when it finds a match.
+So, what we will do is parse the audit.txt from step 2, and extract the chunks using the extract.py script.
+The script will re-create one file per chunk of data which looks like an email, using some simple heuristics to merge "Received:" entries which belongs to the same email (because an email generally includes this header multiple times, one per MTA)
+
+```
+$ python3 extract.py audit.txt raw_image.bin
+```
+
+The chunks will be written in the "chunks" folder by default. After this stage I got around ~100k chunks using 15GB space, representing for the most part every single email which has ever existed on the server, deleted or not, spam or not, plus also some garbage. It's far less than the original 900GB image, but there's still work.
+
+Step 4: Filter chunks to keep only the good emails
+==================================================
+
+TODO
