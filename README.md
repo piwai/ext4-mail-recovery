@@ -35,12 +35,14 @@ To do this, you will need to define a specific signature with a SMTP header enco
 
 To encode it, use the code below:
 
-$ python
-[...]
+```
+$ python3 -q
 >>> header = "Received:"
 >>> print(''.join(str(hex(ord(c))) for c in header).replace('0x','\\x'))
 \x52\x65\x63\x65\x69\x76\x65\x64\x3a
+```
 
 Then put this result into foremost.conf file, like this:
-
+```
 txt n 1000 \x52\x65\x63\x65\x69\x76\x65\x64\x3a
+```
