@@ -69,14 +69,14 @@ Once installed, use the following command to run it:
 ```
 $ foremost -w -c ./foremost.conf -i disk.img
 ```
- * -w is "dry-run" mode, it means don't try to extact the data, just locate the header.
+ * -w is "dry-run" mode, it means don't try to extract the data, just locate the header and write it in the audit file.
  * -c tells to use the config in the current folder
  * -i means use "disk.img" as the raw image extracted by "dd" to look for deleted mails.
 
 Depending on the image size, this might take several hours to complete.
 When it's done, you should get a file named "audit.txt" in a "output" folder.
-There is a "audit.txt.sample" in the repo so you can see what it looks like.
-In my case file was nearly 45MB with more than 800k matches.
+There is a "audit.txt.sample" file in the repo so you can see what it looks like.
+In my case the file was nearly 45MB with more than 800k matches.
 
 Step 3: Extract file chunks based on audit.txt file
 ---------------------------------------------------
