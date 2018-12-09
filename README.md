@@ -48,8 +48,9 @@ $ python3 -q
 
 Then put this result into a foremost.conf file, like this:
 ```
-$ echo "txt n 1000 \x52\x65\x63\x65\x69\x76\x65\x64\x3a" > foremost.conf
+$ echo "txt y 1000 \x52\x65\x63\x65\x69\x76\x65\x64\x3a" > foremost.conf
 ```
+
 You may also use the foremost.conf from this repository.
 
 Step 2: Run foremost to get the potential location of files
