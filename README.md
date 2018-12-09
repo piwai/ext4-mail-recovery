@@ -94,4 +94,13 @@ The chunks will be written in the "chunks" folder by default. After this stage I
 Step 4: Filter chunks to keep only the deleted emails
 ----------------------------------------------------
 
-TODO, Work in progress...
+In my case the deleted mails were in my father's inbox, so the filtering was quite simple: Just keep the mails which have his address as the recipient.
+The "filter-recipient.py" takes care of that, using the python "email" module from the standard library.
+
+```
+$ python3 filter-recipient.py chunks dad@domain.com
+```
+This will look at each chunk, and move it to the "emails" folder if the recipient is "dad@mydomain.com".
+
+After that step, I had 7k mails using 1,5GB. Quite good!
+
