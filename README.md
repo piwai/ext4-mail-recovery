@@ -82,7 +82,7 @@ Step 3: Extract file chunks based on audit.txt file
 ---------------------------------------------------
 
 Now starts the tricky part. Like we've seen, foremost doesn't know how much data it should extract when it finds a match.
-So, what we will do is parse the audit.txt from step 2, and extract the chunks using the extract.py script.
+So, what we will do is parse the audit.txt from step 2, and extract the chunks using the extract-chunks.py script.
 The script will re-create one file per chunk of data which looks like an email, using some simple heuristics to merge "Received:" entries which belongs to the same email (because an email generally includes this header multiple times, one per MTA)
 
 ```
@@ -108,15 +108,14 @@ Step 5: Remove duplicates
 -------------------------
 
 At this stage, I tried to import back the recovered emails into the imap folder, and it worked! I was able to open them using a mail client, the attachement were opening correctly...
-But I noticed several of them were duplicated, so I added one last script
-to remove them.
+But I noticed several of them were duplicated, so I added one last script to remove them.
 
 ```
 $ python3 filter-duplicates.py emails
 ```
 
-Using the "Message-Id" seen earlier, I put all the extra copies in a "duplicates folder, to keep only a single copy of each message. I'm not familiar enough with ext4 internals to explain these duplicates, I assume it sometimes move things to optimize space.
-I finally got around 5k non-duplicated emails, which I could sucessfully restore in the IMAP folder, like nothing ever happened.
+Using the "Message-Id" seen earlier, I put all the extra copies in a "duplicates" folder, to keep only a single copy of each message. I'm not familiar enough with ext4 internals to explain these duplicates, I assume it sometimes move things to optimize space.
+I finally got around 5k non-duplicated emails, which I could sucessfully restore in the IMAP folder, like nothing ever happened. It was a relief for me and my father.
 
 Conclusion
 ----------
