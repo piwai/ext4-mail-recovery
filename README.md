@@ -1,7 +1,7 @@
-Mail recovery Tutorial
+Mail recovery tutorial
 ======================
 
-This repository describes my (desperate) attempt to try to recover deleted emails, in the hope that it can help somebody else.
+This repository describes the procedure I used to recover deleted emails, in the hope that it can help somebody else.
 
 Note: Don't use this if you're using Microsoft Outlook or another mail agent which uses a global binary file per folder (.pst for Outlook). There are dedicated tools for that.
 
@@ -34,7 +34,7 @@ Its purpose is to recover binary files like pictures, videos, compressed archive
 
 So we will use foremost only to locate where the emails could be on the partition, and we will delegate the extraction to a custom Python script, which will be able to extract just the correct amount of data.
 
-To do this, you will need to define a specific signature based on a SMTP header encoded in hex, so that foremost can look for this in the partition and tell you at which offset it saw the signature. After a quick analysis of my own remaining emails I chose the header "Received:", which is a fairly common header that each MTA adds to the email when routing it to its destination. 
+To do this, you will need to define a specific signature based on a SMTP header encoded in hex, so that foremost can look for this in the partition and tell you at which offset it saw the signature. After a quick analysis of my own remaining emails I chose the header "Received:", which is a fairly common header that each MTA adds to the email when routing it to its destination.
 I could have used something else like "Message-ID" which is unique, but this one is generally in the middle of the headers, after "From:" and "To:", so by using it I would have lost the mail sender and recipients.
 
 To encode the header in Hex format used by foremost, use the code below:
@@ -102,5 +102,26 @@ $ python3 filter-recipient.py chunks dad@domain.com
 ```
 This will look at each chunk, and move it to the "emails" folder if the recipient is "dad@mydomain.com".
 
-After that step, I had 7k mails using 1,5GB. Quite good!
+After that step, I had 7k mails using 1,5GB space.
+
+Step 5: Remove duplicates
+-------------------------
+
+At this stage, I tried to import back the recovered emails into the imap folder, and it worked! I was able to open them using a mail client, the attachement were opening correctly...
+But I noticed several of them were duplicated, so I added one last script
+to remove them.
+
+```
+$ python3 filter-duplicates.py emails
+```
+
+Using the "Message-Id" seen earlier, I put all the extra copies in a "duplicates folder, to keep only a single copy of each message. I'm not familiar enough with ext4 internals to explain these duplicates, I assume it sometimes move things to optimize space.
+I finally got around 5k non-duplicated emails, which I could sucessfully restore in the IMAP folder, like nothing ever happened.
+
+Conclusion
+----------
+
+Using this procedure, I was able to successfully recover almost all the emails that were lost.
+I could have avoided all of this hassle with a proper backup (which I now have).
+If you ever find yourself in a similar situation, I just hope that these scripts will be useful to you. If yes, i'll be glad to hear about it!
 
