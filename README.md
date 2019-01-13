@@ -1,11 +1,11 @@
 Mail recovery tutorial
 ======================
 
-This repository describes the procedure I used to recover deleted emails, in the hope that it can help somebody else.
+This repository describes the procedure I used (with success!) to recover deleted emails, in the hope that it can help somebody else.
 
 Note: Don't use this if you're using Microsoft Outlook or another mail agent which uses a global binary file per folder (.pst for Outlook). There are dedicated tools for that.
 
-Here we will try to recover text files on a linux server with an ext4 partition. The files were emails stored in an IMAP folder, and have been deleted by mistake.
+Here we will try to recover text files on a linux server with an ext4 partition. The files were emails stored in an IMAP folder accessed through a webmail, and have been deleted by mistake.
 Details are here: https://serverfault.com/questions/942480/recovering-deleted-plain-text-emails-files-from-raw-disk-image
 
 I will assume that you've already did what I did first:
@@ -30,14 +30,14 @@ Step 1: Configure foremost to locate emails
 -------------------------------------------
 
 Foremost (http://foremost.sourceforge.net/) is a data recovery tool.
-Its purpose is to recover binary files like pictures, videos, compressed archives which were deleted from a hard drive... These files generally have a specific signature in their header, and they also include their own size in their metadata, so they are generally easy to restore when they have not been overwritten by other files. In my case, the mails were just plain text, with SMTP headers, body and base64 attachments, and sadly the SMTP standard doesn't define a content size header, like the "Content-Length" for HTTP.
+Its purpose is to recover binary files like pictures, videos, compressed archives which were deleted from a hard drive... These files generally have a specific signature in their header, and they also include their own size in their metadata, so they are generally easy to restore when they have not been overwritten by other files. In my case, the mails were just plain text, with SMTP headers, body and base64 attachments, and sadly the SMTP standard doesn't define a content size header, like the "Content-Length" for HTTP. So foremost cannot know how much data it needs to extract when it detects a SMTP signature. 
 
-So we will use foremost only to locate where the emails could be on the partition, and we will delegate the extraction to a custom Python script, which will be able to extract just the correct amount of data.
+So, we will use foremost only to locate where the emails could be on the partition, and we will delegate the extraction to a custom Python script, which will be able to extract just the correct amount of data.
 
-To do this, you will need to define a specific signature based on a SMTP header encoded in hex, so that foremost can look for this in the partition and tell you at which offset it saw the signature. After a quick analysis of my own remaining emails I chose the header "Received:", which is a fairly common header that each MTA adds to the email when routing it to its destination.
+To do this, you will need to define a specific signature based on a SMTP header encoded in hex, so that foremost can look for this in the partition and tell you at which offset it saw the signature. After a quick analysis of my own remaining emails I chose the header "Received:", which is a fairly common SMTP header that each MTA adds to the email when routing it to its destination.
 I could have used something else like "Message-ID" which is unique, but this one is generally in the middle of the headers, after "From:" and "To:", so by using it I would have lost the mail sender and recipients.
 
-To encode the header in Hex format used by foremost, use the code below:
+To encode the header in Hex format used by foremost, use the snippet below:
 
 ```
 $ python3 -q
@@ -76,7 +76,7 @@ $ foremost -w -c ./foremost.conf -i disk.img
 Depending on the image size, this might take several hours to complete.
 When it's done, you should get a file named "audit.txt" in a "output" folder.
 There is a "audit.txt.sample" file in the repo so you can see what it looks like.
-In my case the file was nearly 45MB with more than 800k matches.
+In my case, this "audit.txt" file was nearly 45MB with more than 800k matches.
 
 Step 3: Extract file chunks based on audit.txt file
 ---------------------------------------------------
@@ -107,15 +107,15 @@ After that step, I had 7k mails using 1,5GB space.
 Step 5: Remove duplicates
 -------------------------
 
-At this stage, I tried to import back the recovered emails into the imap folder, and it worked! I was able to open them using a mail client, the attachement were opening correctly...
+At this stage, I tried to import back the recovered emails into the IMAP folder, and it worked! I was able to open them using a mail client, the attachements were opening correctly...
 But I noticed several of them were duplicated, so I added one last script to remove them.
 
 ```
 $ python3 filter-duplicates.py emails
 ```
 
-Using the "Message-Id" seen earlier, I put all the extra copies in a "duplicates" folder, to keep only a single copy of each message. I'm not familiar enough with ext4 internals to explain these duplicates, I assume it sometimes move things to optimize space.
-I finally got around 5k non-duplicated emails, which I could sucessfully restore in the IMAP folder, like nothing ever happened. It was a relief for me and my father.
+Using the "Message-Id" seen earlier, I put all the extra copies in a "duplicates" folder, to keep only a single copy of each message. I'm not familiar enough with ext4 and postfix internals to explain these duplicates, I assume the filesystem sometimes move things to optimize space, or maybe postfix needs to re-write them during anti-spam processing.
+Anyway, I finally got around 5k non-duplicated emails, which I could sucessfully restore in the IMAP folder, like nothing ever happened. It was a relief for me and my father.
 
 Conclusion
 ----------
